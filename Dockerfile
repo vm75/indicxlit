@@ -15,8 +15,7 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python packages with pinned versions
 RUN pip install --no-cache-dir --upgrade "pip<24.1" setuptools wheel && \
-    pip install --no-cache-dir cython numpy && \
-    pip install --no-cache-dir "torch==2.4.1" "torchaudio==2.4.1" --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir cython numpy "torch<2.6" && \
     pip install --no-cache-dir flask flask-cors ai4bharat-transliteration
 
 # Runtime stage - minimal image
