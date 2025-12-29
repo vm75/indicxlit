@@ -5,6 +5,8 @@ services:
     container_name: indicxlit
     ports:
       - "4321:4321"
+    volumes:
+      - indicxlit-models:/opt/venv/lib/python3.8/site-packages/ai4bharat/transliteration/transformer/models
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4321/"]
@@ -20,3 +22,7 @@ services:
         reservations:
           cpus: '0.5'
           memory: 512M
+
+volumes:
+  indicxlit-models:
+    driver: local
