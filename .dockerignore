@@ -1,0 +1,51 @@
+# Git
+.git
+.gitignore
+.github
+
+# Documentation
+README.md
+SETUP.md
+*.md
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.pytest_cache
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv
+
+# IDEs
+.vscode
+.idea
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Testing
+test.sh
+tests/
+
+# CI/CD
+.github/
+
+# Logs
+*.log
