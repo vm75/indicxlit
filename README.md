@@ -26,17 +26,7 @@ docker pull ghcr.io/vm75/indicxlit:latest
 docker run -d -p 4321:4321 vm75/indicxlit:latest
 ```
 
-**With persistent model cache (recommended):**
-
-```bash
-docker run -d -p 4321:4321 \
-  -v indicxlit-models:/opt/venv/lib/python3.8/site-packages/ai4bharat/transliteration/transformer/models \
-  vm75/indicxlit:latest
-```
-
 The API server will be available at `http://localhost:4321`
-
-> **Note:** First startup downloads ~900MB of models and takes 2-3 minutes. Using a volume mount prevents re-downloading on container restart.
 
 ## Building from Source
 

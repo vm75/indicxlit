@@ -30,8 +30,5 @@ ENV PATH="/opt/venv/bin:$PATH"
 # Create the launcher script
 RUN echo 'from ai4bharat.transliteration import xlit_server; app, engine = xlit_server.get_app(); app.run(host="0.0.0.0", port=4321)' > app.py
 
-# Create volume mount point for model cache
-VOLUME ["/opt/venv/lib/python3.8/site-packages/ai4bharat/transliteration/transformer/models"]
-
 EXPOSE 4321
 CMD ["python", "app.py"]
