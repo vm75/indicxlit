@@ -6,6 +6,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     build-essential \
     g++ \
     gcc \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Create virtual environment
@@ -13,8 +14,9 @@ RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python packages
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir ai4bharat-transliteration flask flask-cors
+RUN pip install --no-cache-dir --upgrade "pip<24.1" setuptools wheel && \
+    pip install --no-cache-dir cython numpy && \
+    pip install --no-cache-dir flask flask-cors ai4bharat-transliteration
 
 # Runtime stage - minimal image
 FROM python:3.9-slim
