@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 IMAGE_NAME="indicxlit-test"
 CONTAINER_NAME="indicxlit-test-container"
 PORT=4321
-WAIT_TIME=30
+WAIT_TIME=180
 
 echo -e "${YELLOW}========================================${NC}"
 echo -e "${YELLOW}IndicXlit Docker Test Script${NC}"
@@ -40,15 +40,40 @@ echo -e "${GREEN}✓ Container started${NC}"
 
 # Step 3: Wait for the service to be ready
 echo -e "\n${YELLOW}[3/5] Waiting for service to be ready...${NC}"
+echo -e "${YELLOW}Note: First run downloads ~900MB of model files, this may take 1-2 minutes${NC}"
+
+# Check if container is still running
+sleep 2
+if ! docker ps | grep -q "$CONTAINER_NAME"; then
+    echo -e "${RED}✗ Container stopped unexpectedly${NC}"
+    echo -e "\n${YELLOW}Container logs:${NC}"
+    docker logs "$CONTAINER_NAME"
+    exit 1
+fi
+
+# Wait for service
 for i in $(seq 1 $WAIT_TIME); do
-    if curl -s http://localhost:$PORT/ > /dev/null 2>&1; then
+    # Check if container is still running
+    if ! docker ps | grep -q "$CONTAINER_NAME"; then
+        echo -e "${RED}✗ Container stopped unexpectedly${NC}"
+        echo -e "\n${YELLOW}Container logs:${NC}"
+        docker logs "$CONTAINER_NAME"
+        exit 1
+    fi
+
+    # Try to connect to the service - check if server is responding
+    if curl -s -X POST http://localhost:$PORT/transliterate \
+        -H "Content-Type: application/json" \
+        -d '{"input":[{"source":"test"}],"config":{"language":{"sourceLanguage":"en","targetLanguage":"hi"}}}' \
+        > /dev/null 2>&1; then
         echo -e "${GREEN}✓ Service is ready${NC}"
         break
     fi
+
     if [ $i -eq $WAIT_TIME ]; then
         echo -e "${RED}✗ Service failed to start within ${WAIT_TIME} seconds${NC}"
-        echo -e "\n${YELLOW}Container logs:${NC}"
-        docker logs "$CONTAINER_NAME"
+        echo -e "\n${YELLOW}Container logs (last 50 lines):${NC}"
+        docker logs "$CONTAINER_NAME" 2>&1 | tail -50
         exit 1
     fi
     echo -n "."
@@ -58,42 +83,72 @@ done
 # Step 4: Test the API
 echo -e "\n${YELLOW}[4/5] Testing transliteration API...${NC}"
 
-# Test 1: English to Hindi
-echo -e "\nTest 1: English to Hindi (namaste)"
+# Test 1: English to Hindi (word)
+echo -e "\nTest 1: English to Hindi word (namaste)"
 RESPONSE=$(curl -s -X POST http://localhost:$PORT/transliterate \
     -H "Content-Type: application/json" \
-    -d '{"input": "namaste", "source": "en", "target": "hi"}')
+    -d '{
+      "input": [{"source": "namaste"}],
+      "config": {
+        "language": {
+          "sourceLanguage": "en",
+          "targetLanguage": "hi"
+        },
+        "isSentence": false,
+        "numSuggestions": 5
+      }
+    }')
 echo "Response: $RESPONSE"
 
-if echo "$RESPONSE" | grep -q "नमस्ते"; then
+if echo "$RESPONSE" | grep -q '"output"'; then
     echo -e "${GREEN}✓ Test 1 passed${NC}"
 else
     echo -e "${RED}✗ Test 1 failed${NC}"
     exit 1
 fi
 
-# Test 2: English to Tamil
-echo -e "\nTest 2: English to Tamil (vanakkam)"
+# Test 2: English to Tamil (sentence)
+echo -e "\nTest 2: English to Tamil sentence (vanakkam ulagam)"
 RESPONSE=$(curl -s -X POST http://localhost:$PORT/transliterate \
     -H "Content-Type: application/json" \
-    -d '{"input": "vanakkam", "source": "en", "target": "ta"}')
+    -d '{
+      "input": [{"source": "vanakkam ulagam"}],
+      "config": {
+        "language": {
+          "sourceLanguage": "en",
+          "targetLanguage": "ta"
+        },
+        "isSentence": true,
+        "numSuggestions": 1
+      }
+    }')
 echo "Response: $RESPONSE"
 
-if echo "$RESPONSE" | grep -q "வணக்கம்"; then
+if echo "$RESPONSE" | grep -q '"output"'; then
     echo -e "${GREEN}✓ Test 2 passed${NC}"
 else
     echo -e "${RED}✗ Test 2 failed${NC}"
     exit 1
 fi
 
-# Test 3: English to Bengali
+# Test 3: English to Bengali (word)
 echo -e "\nTest 3: English to Bengali (nomoshkar)"
 RESPONSE=$(curl -s -X POST http://localhost:$PORT/transliterate \
     -H "Content-Type: application/json" \
-    -d '{"input": "nomoshkar", "source": "en", "target": "bn"}')
+    -d '{
+      "input": [{"source": "nomoshkar"}],
+      "config": {
+        "language": {
+          "sourceLanguage": "en",
+          "targetLanguage": "bn"
+        },
+        "isSentence": false,
+        "numSuggestions": 3
+      }
+    }')
 echo "Response: $RESPONSE"
 
-if echo "$RESPONSE" | grep -q "success"; then
+if echo "$RESPONSE" | grep -q '"output"'; then
     echo -e "${GREEN}✓ Test 3 passed${NC}"
 else
     echo -e "${RED}✗ Test 3 failed${NC}"

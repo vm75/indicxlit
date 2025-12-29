@@ -43,32 +43,94 @@ docker run -d -p 4321:4321 indicxlit
 
 **Endpoint:** `POST /transliterate`
 
+The API follows the ULCA (Universal Language Contribution API) specification.
+
 **Request Body:**
 ```json
 {
-  "input": "namaste",
-  "source": "en",
-  "target": "hi"
+  "input": [
+    {"source": "namaste"}
+  ],
+  "config": {
+    "language": {
+      "sourceLanguage": "en",
+      "targetLanguage": "hi"
+    },
+    "isSentence": false,
+    "numSuggestions": 5
+  }
 }
 ```
+
+**Parameters:**
+- `input`: Array of objects with `source` field containing text to transliterate
+- `config.language.sourceLanguage`: Source language code (e.g., "en", "hi", "ta")
+- `config.language.targetLanguage`: Target language code
+- `config.isSentence`: Boolean - `true` for sentence transliteration, `false` for word
+- `config.numSuggestions`: Number of suggestions to return (default: 5, max: 10)
 
 **Response:**
 ```json
 {
-  "output": "नमस्ते",
-  "success": true
+  "output": [
+    {
+      "source": "namaste",
+      "target": ["नमस्ते", "नामस्ते", "नमास्ते", "नमस्थे", "नमस्तें"]
+    }
+  ]
 }
 ```
 
 ### Example with cURL
 
+**Word transliteration (English to Hindi):**
 ```bash
 curl -X POST http://localhost:4321/transliterate \
   -H "Content-Type: application/json" \
   -d '{
-    "input": "namaste",
-    "source": "en",
-    "target": "hi"
+    "input": [{"source": "namaste"}],
+    "config": {
+      "language": {
+        "sourceLanguage": "en",
+        "targetLanguage": "hi"
+      },
+      "isSentence": false,
+      "numSuggestions": 5
+    }
+  }'
+```
+
+**Sentence transliteration (English to Tamil):**
+```bash
+curl -X POST http://localhost:4321/transliterate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": [{"source": "vanakkam ulagam"}],
+    "config": {
+      "language": {
+        "sourceLanguage": "en",
+        "targetLanguage": "ta"
+      },
+      "isSentence": true,
+      "numSuggestions": 1
+    }
+  }'
+```
+
+**Indic to English (romanization):**
+```bash
+curl -X POST http://localhost:4321/transliterate \
+  -H "Content-Type: application/json" \
+  -d '{
+    "input": [{"source": "नमस्ते"}],
+    "config": {
+      "language": {
+        "sourceLanguage": "hi",
+        "targetLanguage": "en"
+      },
+      "isSentence": false,
+      "numSuggestions": 5
+    }
   }'
 ```
 

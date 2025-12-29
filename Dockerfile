@@ -1,5 +1,5 @@
 # Build stage - compile dependencies
-FROM python:3.9-slim AS builder
+FROM python:3.8-slim AS builder
 
 # Install build dependencies
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -13,13 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 
-# Install Python packages
+# Install Python packages with pinned versions
 RUN pip install --no-cache-dir --upgrade "pip<24.1" setuptools wheel && \
     pip install --no-cache-dir cython numpy && \
+    pip install --no-cache-dir "torch==2.4.1" "torchaudio==2.4.1" --index-url https://download.pytorch.org/whl/cpu && \
     pip install --no-cache-dir flask flask-cors ai4bharat-transliteration
 
 # Runtime stage - minimal image
-FROM python:3.9-slim
+FROM python:3.8-slim
 
 # Copy virtual environment from builder
 COPY --from=builder /opt/venv /opt/venv
